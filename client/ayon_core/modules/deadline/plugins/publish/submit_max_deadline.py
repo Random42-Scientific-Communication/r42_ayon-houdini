@@ -96,6 +96,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         job_info.Comment = context.data.get("comment")
         job_info.Priority = attr_values.get("priority", self.priority)
         job_info.Group = attr_values.get("group", self.group)
+        job_info.LimitGroups = "redshift"
 
         # Add options from RenderGlobals
         render_globals = instance.data.get("renderGlobals", {})
