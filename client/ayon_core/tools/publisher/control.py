@@ -1838,7 +1838,7 @@ class PublisherController(BasePublisherController):
 
         asset_id = asset_doc["_id"]
         subset_docs = get_subsets(
-            project_name, asset_ids=[asset_id], fields=["name"]
+            project_name, asset_ids=[asset_id], fields=["name", "data.archived"]
         )
         return {
             subset_doc["name"]
