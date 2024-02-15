@@ -1843,6 +1843,7 @@ class PublisherController(BasePublisherController):
         return {
             subset_doc["name"]
             for subset_doc in subset_docs
+            if subset_doc["data"].get("archived") is not True
         }
 
     def reset(self):
