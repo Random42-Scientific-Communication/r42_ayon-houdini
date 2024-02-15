@@ -719,12 +719,34 @@ class CreateWidget(QtWidgets.QWidget):
         compare_regex = re.compile(re.sub(
             variant_value, "(.+)", subset_name, flags=re.IGNORECASE
         ))
+
+        # R42 Custom Variant Hinting
+        r42_custom = False
+        if re.search("image", subset_name, flags=re.IGNORECASE):
+            new_variant_value = "image(.+)"
+            compare_regex = re.compile(new_variant_value)
+            r42_custom = True
+        # R42 END
+
+        
         variant_hints = set()
         if variant_value:
             for _name in existing_subset_names:
                 _result = compare_regex.search(_name)
                 if _result:
-                    variant_hints |= set(_result.groups())
+                    if not r42_custom:
+                        variant_hints |= set(_result.groups())
+                    else:
+                        # R42
+                        temp_list = list(_result.groups())
+                        pattern = "[a-zA-Z][^A-Z]*"
+                        for index,value in enumerate(temp_list):
+                            split_word = re.findall(pattern, value)
+                            result = "".join(split_word[1:])
+                            temp_list[index] = result
+                        result_tuple = tuple(temp_list)
+                        variant_hints |= set(result_tuple)
+                        # R42 END
 
         # Remove previous hints from menu
         for action in tuple(self.variant_hints_group.actions()):
