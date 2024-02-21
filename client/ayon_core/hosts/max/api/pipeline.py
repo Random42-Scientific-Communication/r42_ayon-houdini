@@ -157,6 +157,14 @@ def ls() -> list:
     for container in sorted(containers, key=attrgetter("name")):
         yield lib.read(container)
 
+def create_container_layer():
+    old_layer = rt.LayerManager.current
+    new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Loaders")
+    if not new_layer:
+        new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Loaders")
+    new_layer.current = True
+    return old_layer, new_layer
+
 
 def containerise(name: str, nodes: list, context,
                  namespace=None, loader=None, suffix="_CON"):
@@ -169,10 +177,18 @@ def containerise(name: str, nodes: list, context,
         "representation": context["representation"]["_id"],
     }
     container_name = f"{namespace}:{name}{suffix}"
+
+    # Set to new layer
+    old_layer, new_layer = create_container_layer()
+
     container = rt.container(name=container_name)
     import_custom_attribute_data(container, nodes)
     if not lib.imprint(container_name, data):
         print(f"imprinting of {container_name} failed.")
+
+    # Reset the layer back
+    old_layer.current = True
+
     return container
 
 
