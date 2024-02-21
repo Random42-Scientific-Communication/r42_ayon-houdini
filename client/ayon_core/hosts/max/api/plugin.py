@@ -145,6 +145,14 @@ class OpenPypeCreatorError(CreatorError):
 
 
 class MaxCreatorBase(object):
+    @staticmethod
+    def create_container_layer():
+        old_layer = rt.LayerManager.current
+        new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Savers")
+        if not new_layer:
+            new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Savers")
+        new_layer.current = True
+        return old_layer, new_layer
 
     @staticmethod
     def cache_subsets(shared_data):
@@ -175,6 +183,9 @@ class MaxCreatorBase(object):
         Returns:
             instance
         """
+        # Set to new layer
+        old_layer, new_layer = MaxCreatorBase.create_container_layer()
+
         if isinstance(node, str):
             node = rt.Container(name=node)
 
@@ -183,6 +194,9 @@ class MaxCreatorBase(object):
         rt.addModifier(node, modifier)
         node.modifiers[0].name = "OP Data"
         rt.custAttributes.add(node.modifiers[0], attrs)
+
+        # Reset the layer back
+        old_layer.current = True
 
         return node
 
