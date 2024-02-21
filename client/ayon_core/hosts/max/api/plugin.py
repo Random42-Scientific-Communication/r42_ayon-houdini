@@ -28,7 +28,7 @@ MS_CUSTOM_ATTRIB = f"""attributes "openPypeData"
     (
         listbox list_node "Node References" items:#()
         button button_add "Add to Container"
-        button button_del "Delete from Container"
+        -- button button_del "Delete from Container"
 
         fn node_to_name the_node =
         (
