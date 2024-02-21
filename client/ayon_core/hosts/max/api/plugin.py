@@ -10,7 +10,13 @@ from ayon_core.pipeline import CreatedInstance, Creator, CreatorError
 
 from .lib import imprint, lsattr, read
 
-MS_CUSTOM_ATTRIB = """attributes "openPypeData"
+# --------------------------------
+from ayon_core.hosts.max.api import R42_ContainerUI_Addon
+
+R42_CONTAINER_UI_POPUP = R42_ContainerUI_Addon.R42_CONTAINER_UI_POPUP
+# --------------------------------
+
+MS_CUSTOM_ATTRIB = f"""attributes "openPypeData"
 (
     parameters main rollout:OPparams
     (
@@ -22,7 +28,7 @@ MS_CUSTOM_ATTRIB = """attributes "openPypeData"
     (
         listbox list_node "Node References" items:#()
         button button_add "Add to Container"
-        button button_del "Delete from Container"
+        -- button button_del "Delete from Container"
 
         fn node_to_name the_node =
         (
@@ -65,28 +71,11 @@ MS_CUSTOM_ATTRIB = """attributes "openPypeData"
 
         on button_add pressed do
         (
-            current_sel = selectByName title:"Select Objects to add to
-            the Container" buttontext:"Add" filter:nodes_to_add
-            if current_sel == undefined then return False
-            temp_arr = #()
-            i_node_arr = #()
-            for c in current_sel do
-            (
-                handle_name = node_to_name c
-                node_ref = NodeTransformMonitor node:c
-                idx = finditem list_node.items handle_name
-                if idx do (
-                    continue
-                )
-                name = c as string
-                append temp_arr handle_name
-                append i_node_arr node_ref
-                append sel_list name
-            )
-            all_handles = join i_node_arr all_handles
-            list_node.items = join temp_arr list_node.items
+            {R42_CONTAINER_UI_POPUP}
+            createDialog OPContainerEdit modal:true
         )
 
+        /*
         on button_del pressed do
         (
             current_sel = selectByName title:"Select Objects to remove
@@ -131,6 +120,7 @@ MS_CUSTOM_ATTRIB = """attributes "openPypeData"
             all_handles = join i_node_arr new_i_node_arr
             list_node.items = join temp_arr new_temp_arr
         )
+        */
 
         on OPparams open do
         (
