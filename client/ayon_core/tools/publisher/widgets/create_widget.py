@@ -720,13 +720,20 @@ class CreateWidget(QtWidgets.QWidget):
             variant_value, "(.+)", subset_name, flags=re.IGNORECASE
         ))
 
-        # R42 Custom Variant Hinting
+        ''' ---------------------
+        R42 Add Start
+        --------------------- '''
         r42_custom = False
-        if re.search("image", subset_name, flags=re.IGNORECASE):
-            new_variant_value = "image(.+)"
+        if re.search("render|image", subset_name, flags=re.IGNORECASE):
+            if re.search("render", subset_name, flags=re.IGNORECASE):
+                new_variant_value = "render(.+)"
+            else:
+                new_variant_value = "image(.+)"
             compare_regex = re.compile(new_variant_value)
             r42_custom = True
-        # R42 END
+        ''' ---------------------
+        R42 Add End
+        --------------------- '''
 
         
         variant_hints = set()
@@ -734,19 +741,29 @@ class CreateWidget(QtWidgets.QWidget):
             for _name in existing_subset_names:
                 _result = compare_regex.search(_name)
                 if _result:
+                    ''' ---------------------
+                    R42 Add Start
+                    --------------------- '''
+                    known_prefix = ["Max", "Hou"]
                     if not r42_custom:
                         variant_hints |= set(_result.groups())
                     else:
-                        # R42
                         temp_list = list(_result.groups())
                         pattern = "[a-zA-Z][^A-Z]*"
-                        for index,value in enumerate(temp_list):
+                        for index, value in enumerate(temp_list):
                             split_word = re.findall(pattern, value)
-                            result = "".join(split_word[1:])
+                            if split_word[0] in known_prefix:
+                                result = "".join(split_word[1:])
+                            else:
+                                result = "".join(split_word)
                             temp_list[index] = result
                         result_tuple = tuple(temp_list)
                         variant_hints |= set(result_tuple)
-                        # R42 END
+
+                    # variant_hints |= set(_result.groups())
+                    ''' ---------------------
+                    R42 Add End
+                    --------------------- '''
 
         # Remove previous hints from menu
         for action in tuple(self.variant_hints_group.actions()):
