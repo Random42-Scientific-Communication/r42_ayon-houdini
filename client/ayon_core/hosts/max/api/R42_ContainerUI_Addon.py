@@ -4,6 +4,8 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 	   VARIABLES
 	--------------*/
 	local current_handles = #()
+	local current_self
+	local current_modifier
 
 	/*--------------
 	   PARAMS
@@ -145,7 +147,10 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 
 		-- if current_all_selection.count == 0 do return False
 
-		op_data = selection[1].modifiers[1]
+		-- op_data = selection[1].modifiers[1]
+		select current_self
+		IsolateSelection.ExitIsolateSelectionMode()
+		op_data = current_modifier
 		op_data.sel_list = #()
 
 		temp_arr = #()
@@ -162,6 +167,39 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 		op_data.all_handles = i_node_arr
 		op_data.OPparams.list_node.items = temp_arr
 	)
+	
+	fn double_click_functionality ui_object sel =
+	(
+		check_selection = selection[1]
+		current_node = getNodeByName ui_object.items[sel]
+		
+		if check_selection == current_node then
+		(
+			select current_self
+			IsolateSelection.ExitIsolateSelectionMode()
+		)
+		else
+		(
+			select current_node
+			IsolateSelection.EnterIsolateSelectionMode()
+		)
+	)
+	
+	fn right_click_functionality ui_object =
+	(
+		current_array = ui_object.selection as array
+		if current_array.count == 0 and current_array != undefined then
+		(
+			return none
+		)
+		message = ""
+		for i in current_array do
+		(
+			current_node = ui_object.items[i]
+			message += ("Full Name: " + current_node + "\n")
+		)
+		messageBox message
+	)
 
 	/*--------------
 	   CALLBACKS
@@ -170,6 +208,8 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 	(
 		-- Grab current Container
 		current_handles = selection[1].modifiers[1].all_handles
+		current_self = selection[1]
+		current_modifier = current_self.modifiers[1]
 
 		-- Create a temp array with only included nodes
 		current_container_node = #()
@@ -267,6 +307,86 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 	(
 		moveObjects &lb_con_tycache &lb_tycache
 	)
+	
+	on lb_object doubleClicked sel do
+	(
+		double_click_functionality lb_object sel
+	)
+	
+	on lb_object rightClick do
+	(
+		right_click_functionality lb_object
+	)
+	
+	on lb_camera doubleClicked sel do
+	(
+		double_click_functionality lb_camera sel
+	)
+	
+	on lb_camera rightClick do
+	(
+		right_click_functionality lb_camera
+	)
+	
+	on lb_lights doubleClicked sel do
+	(
+		double_click_functionality lb_lights sel
+	)
+	
+	on lb_lights rightClick do
+	(
+		right_click_functionality lb_lights
+	)
+	
+	on lb_tycache doubleClicked sel do
+	(
+		double_click_functionality lb_tycache sel
+	)
+	
+	on lb_tycache rightClick do
+	(
+		right_click_functionality lb_tycache
+	)
+
+	on lb_con_object doubleClicked sel do
+	(
+		double_click_functionality lb_con_object sel
+	)
+	
+	on lb_con_object rightClick do
+	(
+		right_click_functionality lb_con_object
+	)
+	
+	on lb_con_camera doubleClicked sel do
+	(
+		double_click_functionality lb_con_camera sel
+	)
+	
+	on lb_con_camera rightClick do
+	(
+		right_click_functionality lb_con_camera
+	)
+	
+	on lb_con_lights doubleClicked sel do
+	(
+		double_click_functionality lb_con_lights sel
+	)
+	
+	on lb_con_lights rightClick do
+	(
+		right_click_functionality lb_con_lights
+	)
+	
+	on lb_con_tycache doubleClicked sel do
+	(
+		double_click_functionality lb_con_tycache sel
+	)
+	
+	on lb_con_tycache rightClick do
+	(
+		right_click_functionality lb_con_tycache
+	)
 
 	on b_accept pressed do
 	(
@@ -276,6 +396,8 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 
 	on b_cancel pressed do
 	(
+		select current_self
+		IsolateSelection.ExitIsolateSelectionMode()
 		destroyDialog OPContainerEdit
 	)
 )"""
