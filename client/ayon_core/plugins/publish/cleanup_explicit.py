@@ -19,7 +19,7 @@ class ExplicitCleanUp(pyblish.api.ContextPlugin):
     order = pyblish.api.IntegratorOrder + 10
     label = "Explicit Clean Up"
     optional = True
-    active = True
+    active = False
 
     def process(self, context):
         cleanup_full_paths = context.data.get("cleanupFullPaths")
