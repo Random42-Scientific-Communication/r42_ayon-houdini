@@ -52,9 +52,9 @@ def get_resource_files(resources, frame_range=None):
     return list(res_collection)
 
 
-class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
-                                publish.AYONPyblishPluginMixin,
-                                publish.ColormanagedPyblishPluginMixin):
+class PreviewProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
+                                       publish.AYONPyblishPluginMixin,
+                                       publish.ColormanagedPyblishPluginMixin):
     """Process Job submitted on farm.
 
     These jobs are dependent on a deadline job
@@ -81,8 +81,8 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
 
     """
 
-    label = "Submit Image Publishing job to Deadline"
-    order = pyblish.api.IntegratorOrder + 0.3
+    label = "Submit Preview Image Publishing job to Deadline"
+    order = pyblish.api.IntegratorOrder + 0.25
     icon = "tractor"
 
     targets = ["local"]
@@ -175,7 +175,7 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         """
         data = instance.data.copy()
         subset = data["subset"]
-        job_name = "Publish - {subset}".format(subset=subset)
+        job_name = "Publish - {subset} - (Preview-Frames)".format(subset=subset)
 
         anatomy = instance.context.data['anatomy']
 
@@ -311,6 +311,8 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
 
         deadline_publish_job_id = response.json()["_id"]
 
+        instance.data["previewDeadlineSubmissionJob"] = deadline_publish_job_id
+
         return deadline_publish_job_id
 
 
@@ -376,10 +378,12 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         This will result in one instance with two representations:
         `foo` and `xxx`
         """
-        do_not_add_review = False
+        do_not_add_review = True
+        '''
         if instance.data.get("review") is False:
             self.log.debug("Instance has review explicitly disabled.")
             do_not_add_review = True
+        '''
 
         aov_filter = {
             item["name"]: item["value"]

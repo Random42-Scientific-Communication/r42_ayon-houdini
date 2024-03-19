@@ -22,6 +22,7 @@ from ayon_core.hosts.max.api.lib import (
 from ayon_core.hosts.max.api.lib_rendersettings import RenderSettings
 from openpype_modules.deadline import abstract_submit_deadline
 from openpype_modules.deadline.abstract_submit_deadline import DeadlineJobInfo
+
 import pyblish.api
 
 @attr.s
@@ -32,14 +33,14 @@ class MaxPluginInfo(object):
     IgnoreInputs = attr.ib(default=True)
 
 
-class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
-                        AYONPyblishPluginMixin):
+class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
+                               AYONPyblishPluginMixin):
 
-    label = "Submit Render to Deadline"
+    label = "Submit Preview Render to Deadline"
     hosts = ["max"]
     families = ["maxrender"]
     targets = ["local"]
-    order = pyblish.api.IntegratorOrder + 0.3
+    order = pyblish.api.IntegratorOrder + 0.24
 
     use_published = True
     priority = 50
@@ -47,6 +48,8 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     jobInfo = {}
     pluginInfo = {}
     group = None
+
+    preview_frame_skip = 2
 
     @classmethod
     def apply_settings(cls, project_settings, system_settings):
@@ -59,6 +62,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                                     cls.priority)
         cls.chuck_size = settings.get("chunk_size", cls.chunk_size)
         cls.group = settings.get("group", cls.group)
+        cls.preview_frame_skip = settings.get("preview_frame_skip", cls.preview_frame_skip)
 
     # TODO: multiple camera instance, separate job infos
     def get_job_info(self):
@@ -77,7 +81,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
         src_filepath = context.data["currentFile"]
         src_filename = os.path.basename(src_filepath)
-        job_info.Name = "%s - %s" % (src_filename, instance.name)
+        job_info.Name = "%s - %s (Preview-Frames)" % (src_filename, instance.name)
         job_info.BatchName = src_filename
         job_info.Plugin = instance.data["plugin"]
         job_info.UserName = context.data.get("deadlineUser", getpass.getuser())
@@ -89,19 +93,24 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
             end=int(instance.data["frameEnd"])
         )
         '''
-        frames = self._get_non_preview_frames()
-        job_info.Frames = frames
 
         job_info.Pool = instance.data.get("primaryPool")
         job_info.SecondaryPool = instance.data.get("secondaryPool")
 
-        job_info.JobDependencies = instance.data.get("previewDeadlineSubmissionJob")
-
         attr_values = self.get_attr_values_from_data(instance.data)
+
+        preview_frame_skip = attr_values.get("preview_frame_skip", self.preview_frame_skip)
+        frames = "{start}-{end}x{skip}".format(
+            start=int(instance.data["frameStart"]),
+            end=int(instance.data["frameEnd"]),
+            skip=int(preview_frame_skip)
+        )
+        job_info.Frames = frames
+        self._instance.data["preview_frame_skip"] = preview_frame_skip
 
         job_info.ChunkSize = attr_values.get("chunkSize", 1)
         job_info.Comment = context.data.get("comment")
-        job_info.Priority = attr_values.get("priority", self.priority)
+        job_info.Priority = attr_values.get("preview_priority", self.priority)
         job_info.Group = attr_values.get("group", self.group)
         job_info.LimitGroups = "redshift"
 
@@ -185,21 +194,18 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
             "dirname": output_dir
         }
 
-        self.log.debug("Submitting 3dsMax render..")
+        self.log.debug("Submitting 3dsMax preview frames render..")
         project_settings = instance.context.data["project_settings"]
         if instance.data.get("multiCamera"):
             self.log.debug("Submitting jobs for multiple cameras..")
             payload = self._use_published_name_for_multiples(
                 payload_data, project_settings)
-
             job_infos, plugin_infos = payload
-
             for job_info, plugin_info in zip(job_infos, plugin_infos):
                 self.submit(self.assemble_payload(job_info, plugin_info))
         else:
             payload = self._use_published_name(payload_data, project_settings)
             job_info, plugin_info = payload
-
             self.submit(self.assemble_payload(job_info, plugin_info))
 
     def _use_published_name(self, data, project_settings):
@@ -212,10 +218,6 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
         instance = self._instance
         job_info = copy.deepcopy(self.job_info)
-
-        # job_data = {"JobDependencies": instance.data.get("initialDeadlineSubmissionJob")}
-        # job_info.update(job_data)
-
         plugin_info = copy.deepcopy(self.plugin_info)
         plugin_data = {}
 
@@ -393,32 +395,6 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         return replace_with_published_scene_path(
             instance, replace_in_path)
 
-    def _get_non_preview_frames(self):
-        instance = self._instance
-        start = int(instance.data["frameStart"])
-        end = int(instance.data["frameEnd"])
-        skip = int(instance.data['preview_frame_skip'])
-
-        self.log.debug("==========================")
-        self.log.debug(f"start is {start} and type {type(start)}")
-        self.log.debug(f"end is {end} and type {type(end)}")
-        self.log.debug(f"skip is {skip} and type {type(skip)}")
-        self.log.debug("==========================")
-
-        preview_frames = []
-        rest_of_frames = []
-
-        for i in range(start, end + 1, skip):
-            preview_frames.append(i)
-
-        for i in range(start, end + 1):
-            rest_of_frames.append(i)
-
-        rest_of_frames = list(set(rest_of_frames) - set(preview_frames))
-        frame_str = ','.join([str(x) for x in rest_of_frames])
-        return frame_str
-
-
     @staticmethod
     def _iter_expected_files(exp):
         if isinstance(exp[0], dict):
@@ -431,26 +407,8 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
     @classmethod
     def get_attribute_defs(cls):
-        defs = super(MaxSubmitDeadline, cls).get_attribute_defs()
-
+        defs = super(PreviewMaxSubmitDeadline, cls).get_attribute_defs()
         defs.extend([
-            NumberDef("priority",
-                      minimum=1,
-                      maximum=250,
-                      decimals=0,
-                      default=cls.priority,
-                      label="Priority"),
-            ])
-
-        '''
-        defs.extend([
-            NumberDef("priority",
-                      minimum=1,
-                      maximum=250,
-                      decimals=0,
-                      default=cls.priority,
-                      label="Priority"),
-            
             BoolDef("use_published",
                     default=cls.use_published,
                     label="Use Published Scene"),
@@ -465,8 +423,20 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
             TextDef("group",
                     default=cls.group,
                     label="Group Name"),
-            
-            ])
-        '''
+
+            NumberDef("preview_priority",
+                      minimum=1,
+                      maximum=250,
+                      decimals=0,
+                      default=cls.priority,
+                      label="Preview Priority"),
+
+            NumberDef("preview_frame_skip",
+                      minimum=1,
+                      maximum=50,
+                      decimals=0,
+                      default=cls.preview_frame_skip,
+                      label="Preview Frame Skip"),
+        ])
 
         return defs
