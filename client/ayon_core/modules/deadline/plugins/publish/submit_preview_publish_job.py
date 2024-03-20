@@ -6,6 +6,7 @@ import re
 from copy import deepcopy
 import requests
 import clique
+import shutil
 
 import pyblish.api
 
@@ -15,6 +16,7 @@ from ayon_core.client import (
 from ayon_core.pipeline import publish
 from ayon_core.lib import EnumDef, is_in_tests
 from ayon_core.pipeline.version_start import get_versioning_start
+from ayon_core import resources
 
 from ayon_core.pipeline.farm.pyblish_functions import (
     create_skeleton_instance,
@@ -52,9 +54,9 @@ def get_resource_files(resources, frame_range=None):
     return list(res_collection)
 
 
-class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
-                                publish.AYONPyblishPluginMixin,
-                                publish.ColormanagedPyblishPluginMixin):
+class PreviewProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
+                                       publish.AYONPyblishPluginMixin,
+                                       publish.ColormanagedPyblishPluginMixin):
     """Process Job submitted on farm.
 
     These jobs are dependent on a deadline job
@@ -81,8 +83,9 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
 
     """
 
-    label = "Submit Image Publishing job to Deadline"
-    order = pyblish.api.IntegratorOrder + 0.3
+    label = "Submit Preview Image Publishing job to Deadline"
+    order = pyblish.api.IntegratorOrder + 0.25
+    optional = True
     icon = "tractor"
 
     targets = ["local"]
@@ -175,7 +178,7 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         """
         data = instance.data.copy()
         subset = data["subset"]
-        job_name = "Publish - {subset}".format(subset=subset)
+        job_name = "Publish - {subset} - (Preview-Frames)".format(subset=subset)
 
         anatomy = instance.context.data['anatomy']
 
@@ -311,6 +314,8 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
 
         deadline_publish_job_id = response.json()["_id"]
 
+        instance.data["previewDeadlineSubmissionJob"] = deadline_publish_job_id
+
         return deadline_publish_job_id
 
 
@@ -326,6 +331,10 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
             instance (pyblish.api.Instance): Instance data.
 
         """
+        if not instance.data.get("use_preview_frames"):
+            self.log.debug("Skipping preview submit.")
+            return
+
         if not instance.data.get("farm"):
             self.log.debug("Skipping local instance.")
             return
@@ -376,10 +385,12 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         This will result in one instance with two representations:
         `foo` and `xxx`
         """
-        do_not_add_review = False
+        do_not_add_review = True
+        '''
         if instance.data.get("review") is False:
             self.log.debug("Instance has review explicitly disabled.")
             do_not_add_review = True
+        '''
 
         aov_filter = {
             item["name"]: item["value"]
@@ -499,6 +510,9 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         metadata_path, rootless_metadata_path = \
             create_metadata_path(instance, anatomy)
 
+        # Generate temp files if no file exist
+        self._generate_fill_in_frames(publish_job)
+
         with open(metadata_path, "w") as f:
             json.dump(publish_job, f, indent=4, sort_keys=True)
 
@@ -584,11 +598,30 @@ class ProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
 
         return publish_folder
 
+    def _generate_fill_in_frames(self, publish_job):
+        out_dir_list = publish_job["job"]["OutDir"]
+        out_file_list = publish_job["job"]["OutFile"]
+
+        images = resources.get_resource("images")
+        temp_exr = os.path.join(images, "default_black.exr")
+
+        for i in range(0, len(out_file_list)):
+            current_dir = out_dir_list[i]
+            current_file = out_file_list[i]
+            current_full_path = os.path.join(current_dir, current_file)
+
+            # Check if file exists
+            file_exist = os.path.exists(current_full_path)
+            if not file_exist:
+                # Copy and rename temp file
+                shutil.copy(temp_exr, current_full_path)
+
+
     @classmethod
     def get_attribute_defs(cls):
         return [
             EnumDef("publishJobState",
-                    label="Publish Job State",
+                    label="Preview Publish Job State",
                     items=["Active", "Suspended"],
                     default="Active")
         ]
