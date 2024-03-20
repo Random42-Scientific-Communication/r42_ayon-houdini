@@ -48,6 +48,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     jobInfo = {}
     pluginInfo = {}
     group = None
+    use_preview_frames = False
 
     preview_frame_skip = 2
 
@@ -63,6 +64,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         cls.chuck_size = settings.get("chunk_size", cls.chunk_size)
         cls.group = settings.get("group", cls.group)
         cls.preview_frame_skip = settings.get("preview_frame_skip", cls.preview_frame_skip)
+        cls.use_preview_frames = settings.get("use_preview_frames", cls.use_preview_frames)
 
     # TODO: multiple camera instance, separate job infos
     def get_job_info(self):
@@ -178,6 +180,18 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     def process_submission(self):
 
         instance = self._instance
+
+        # Store UI Attributes
+        attr_values = self.get_attr_values_from_data(instance.data)
+        use_preview_frames = attr_values.get("use_preview_frames", self.use_preview_frames)
+        self._instance.data["use_preview_frames"] = use_preview_frames
+        self._instance.data["ui_settings_use_published"] = attr_values.get("use_published")
+        self._instance.data["ui_settings_chunkSize"] = attr_values.get("chunkSize")
+        self._instance.data["ui_settings_group"] = attr_values.get("group")
+        if not use_preview_frames:
+            self.log.debug("Skipping Preview Max Job...")
+            return
+
         filepath = instance.context.data["currentFile"]
 
         files = instance.data["expectedFiles"]
@@ -423,6 +437,10 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
             TextDef("group",
                     default=cls.group,
                     label="Group Name"),
+
+            BoolDef("use_preview_frames",
+                    default=cls.use_preview_frames,
+                    label="Use Preview Frames"),
 
             NumberDef("preview_priority",
                       minimum=1,

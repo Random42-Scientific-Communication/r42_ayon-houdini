@@ -83,26 +83,32 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         job_info.UserName = context.data.get("deadlineUser", getpass.getuser())
         job_info.EnableAutoTimeout = True
         # Deadline requires integers in frame range
-        '''
-        frames = "{start}-{end}".format(
-            start=int(instance.data["frameStart"]),
-            end=int(instance.data["frameEnd"])
-        )
-        '''
-        frames = self._get_non_preview_frames()
+
+        use_preview_frames = instance.data["use_preview_frames"]
+
+        if not use_preview_frames:
+            frames = "{start}-{end}".format(
+                start=int(instance.data["frameStart"]),
+                end=int(instance.data["frameEnd"])
+            )
+        else:
+            frames = self._get_non_preview_frames()
         job_info.Frames = frames
 
         job_info.Pool = instance.data.get("primaryPool")
         job_info.SecondaryPool = instance.data.get("secondaryPool")
 
-        job_info.JobDependencies = instance.data.get("previewDeadlineSubmissionJob")
+        if use_preview_frames:
+            job_info.JobDependencies = instance.data.get("previewDeadlineSubmissionJob")
 
         attr_values = self.get_attr_values_from_data(instance.data)
 
-        job_info.ChunkSize = attr_values.get("chunkSize", 1)
+        # job_info.ChunkSize = attr_values.get("chunkSize", 1)
+        job_info.ChunkSize = instance.data.get("ui_settings_chunkSize")
         job_info.Comment = context.data.get("comment")
         job_info.Priority = attr_values.get("priority", self.priority)
-        job_info.Group = attr_values.get("group", self.group)
+        # job_info.Group = attr_values.get("group", self.group)
+        job_info.Group = instance.data.get("ui_settings_group")
         job_info.LimitGroups = "redshift"
 
         # Add options from RenderGlobals
@@ -398,12 +404,6 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         start = int(instance.data["frameStart"])
         end = int(instance.data["frameEnd"])
         skip = int(instance.data['preview_frame_skip'])
-
-        self.log.debug("==========================")
-        self.log.debug(f"start is {start} and type {type(start)}")
-        self.log.debug(f"end is {end} and type {type(end)}")
-        self.log.debug(f"skip is {skip} and type {type(skip)}")
-        self.log.debug("==========================")
 
         preview_frames = []
         rest_of_frames = []
