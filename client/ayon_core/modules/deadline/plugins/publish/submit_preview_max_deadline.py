@@ -7,6 +7,7 @@ from ayon_core.lib import (
     TextDef,
     BoolDef,
     NumberDef,
+    EnumDef,
 )
 from ayon_core.pipeline import (
     AYONPyblishPluginMixin
@@ -51,6 +52,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     use_preview_frames = False
 
     preview_frame_skip = 2
+    initialStatus = "active"
 
     @classmethod
     def apply_settings(cls, project_settings, system_settings):
@@ -65,6 +67,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         cls.group = settings.get("group", cls.group)
         cls.preview_frame_skip = settings.get("preview_frame_skip", cls.preview_frame_skip)
         cls.use_preview_frames = settings.get("use_preview_frames", cls.use_preview_frames)
+        cls.initialStatus = settings.get("initialStatus", cls.initialStatus)
 
     # TODO: multiple camera instance, separate job infos
     def get_job_info(self):
@@ -109,6 +112,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         )
         job_info.Frames = frames
         self._instance.data["preview_frame_skip"] = preview_frame_skip
+        job_info.InitialStatus = attr_values.get("initialStatus", self.initialStatus)
 
         job_info.ChunkSize = attr_values.get("chunkSize", 1)
         job_info.Comment = context.data.get("comment")
@@ -188,6 +192,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         self._instance.data["ui_settings_use_published"] = attr_values.get("use_published")
         self._instance.data["ui_settings_chunkSize"] = attr_values.get("chunkSize")
         self._instance.data["ui_settings_group"] = attr_values.get("group")
+
         if not use_preview_frames:
             self.log.debug("Skipping Preview Max Job...")
             return
@@ -455,6 +460,11 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                       decimals=0,
                       default=cls.preview_frame_skip,
                       label="Preview Frame Skip"),
+
+            EnumDef("initialStatus",
+                    label="Preview Render Job State",
+                    items=["Active", "Suspended"],
+                    default=cls.initialStatus),
         ])
 
         return defs

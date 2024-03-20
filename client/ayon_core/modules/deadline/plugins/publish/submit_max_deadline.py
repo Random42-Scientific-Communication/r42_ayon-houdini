@@ -7,6 +7,7 @@ from ayon_core.lib import (
     TextDef,
     BoolDef,
     NumberDef,
+    EnumDef
 )
 from ayon_core.pipeline import (
     AYONPyblishPluginMixin
@@ -48,6 +49,8 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     pluginInfo = {}
     group = None
 
+    initialStatus = "active"
+
     @classmethod
     def apply_settings(cls, project_settings, system_settings):
         settings = project_settings["deadline"]["publish"]["MaxSubmitDeadline"]  # noqa
@@ -59,6 +62,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                                     cls.priority)
         cls.chuck_size = settings.get("chunk_size", cls.chunk_size)
         cls.group = settings.get("group", cls.group)
+        cls.initialStatus = settings.get("initialStatus", cls.initialStatus)
 
     # TODO: multiple camera instance, separate job infos
     def get_job_info(self):
@@ -110,6 +114,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         # job_info.Group = attr_values.get("group", self.group)
         job_info.Group = instance.data.get("ui_settings_group")
         job_info.LimitGroups = "redshift"
+        job_info.InitialStatus = attr_values.get("initialStatus", self.initialStatus)
 
         # Add options from RenderGlobals
         render_globals = instance.data.get("renderGlobals", {})
@@ -440,6 +445,11 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                       decimals=0,
                       default=cls.priority,
                       label="Priority"),
+
+            EnumDef("initialStatus",
+                    label="Preview Render Job State",
+                    items=["Active", "Suspended"],
+                    default=cls.initialStatus),
             ])
 
         '''
