@@ -102,22 +102,19 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         job_info.Pool = instance.data.get("primaryPool")
         job_info.SecondaryPool = instance.data.get("secondaryPool")
 
-        attr_values = self.get_attr_values_from_data(instance.data)
-
-        preview_frame_skip = attr_values.get("preview_frame_skip", self.preview_frame_skip)
+        preview_frame_skip = instance.data["preview_frame_skip"]
         frames = "{start}-{end}x{skip}".format(
             start=int(instance.data["frameStart"]),
             end=int(instance.data["frameEnd"]),
             skip=int(preview_frame_skip)
         )
         job_info.Frames = frames
-        self._instance.data["preview_frame_skip"] = preview_frame_skip
-        job_info.InitialStatus = attr_values.get("initialStatus", self.initialStatus)
+        job_info.InitialStatus = instance.data["preview_initial_status"]
 
-        job_info.ChunkSize = attr_values.get("chunkSize", 1)
+        job_info.ChunkSize = instance.data["chunk_size"]
         job_info.Comment = context.data.get("comment")
-        job_info.Priority = attr_values.get("preview_priority", self.priority)
-        job_info.Group = attr_values.get("group", self.group)
+        job_info.Priority = instance.data["preview_priority"]
+        job_info.Group = instance.data["group"]
         job_info.LimitGroups = "redshift"
 
         # Add options from RenderGlobals
@@ -182,16 +179,8 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         return plugin_payload
 
     def process_submission(self):
-
         instance = self._instance
-
-        # Store UI Attributes
-        attr_values = self.get_attr_values_from_data(instance.data)
-        use_preview_frames = attr_values.get("use_preview_frames", self.use_preview_frames)
-        self._instance.data["use_preview_frames"] = use_preview_frames
-        self._instance.data["ui_settings_use_published"] = attr_values.get("use_published")
-        self._instance.data["ui_settings_chunkSize"] = attr_values.get("chunkSize")
-        self._instance.data["ui_settings_group"] = attr_values.get("group")
+        use_preview_frames = instance.data["use_preview_frames"]
 
         if not use_preview_frames:
             self.log.debug("Skipping Preview Max Job...")
@@ -427,6 +416,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     @classmethod
     def get_attribute_defs(cls):
         defs = super(PreviewMaxSubmitDeadline, cls).get_attribute_defs()
+        '''
         defs.extend([
             BoolDef("use_published",
                     default=cls.use_published,
@@ -466,5 +456,5 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                     items=["Active", "Suspended"],
                     default=cls.initialStatus),
         ])
-
+        '''
         return defs
