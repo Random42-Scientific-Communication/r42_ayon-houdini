@@ -50,7 +50,7 @@ class RedshiftRenderPluginInfo():
     Version = attr.ib(default="1")
 
 
-class HoudiniSubmitDeadline(
+class PreviewHoudiniSubmitDeadline(
     abstract_submit_deadline.AbstractSubmitDeadline,
     AYONPyblishPluginMixin
 ):
@@ -66,8 +66,8 @@ class HoudiniSubmitDeadline(
 
     """
 
-    label = "Submit Render to Deadline"
-    order = pyblish.api.IntegratorOrder + 0.3
+    label = "Submit Preview Render to Deadline"
+    order = pyblish.api.IntegratorOrder + 0.24
     hosts = ["houdini"]
     families = ["usdrender",
                 "redshift_rop",
@@ -162,7 +162,7 @@ class HoudiniSubmitDeadline(
 
         filepath = context.data["currentFile"]
         filename = os.path.basename(filepath)
-        job_info.Name = "{} - {} {}".format(filename, instance.name, job_type)
+        job_info.Name = "{} - {} {} (Preview-Frames)".format(filename, instance.name, job_type)
         job_info.BatchName = filename
 
         job_info.UserName = context.data.get(
@@ -187,18 +187,28 @@ class HoudiniSubmitDeadline(
             job_info.BatchName += datetime.now().strftime("%d%m%Y%H%M%S")
 
         # Deadline requires integers in frame range
-        use_preview_frames = instance.data["use_preview_frames"]
-
-        if not use_preview_frames:
-            start = instance.data["frameStartHandle"]
-            end = instance.data["frameEndHandle"]
+        start = instance.data["frameStartHandle"]
+        end = instance.data["frameEndHandle"]
+        skip = instance.data["preview_frame_skip"]
+        '''
+        frames = "{start}-{end}x{step}".format(
+            start=int(start),
+            end=int(end),
+            step=int(instance.data["byFrameStep"]),
+        )
+        '''
+        if job_type == "[RENDER]":
+            frames = "{start}-{end}x{skip}".format(
+                start=int(start),
+                end=int(end),
+                skip=int(skip),
+            )
+        else:
             frames = "{start}-{end}x{step}".format(
                 start=int(start),
                 end=int(end),
                 step=int(instance.data["byFrameStep"]),
             )
-        else:
-            frames = self._get_non_preview_frames()
 
         job_info.Frames = frames
 
@@ -327,31 +337,15 @@ class HoudiniSubmitDeadline(
 
         return attr.asdict(plugin_info)
 
-    def _get_non_preview_frames(self):
-        instance = self._instance
-        start = int(instance.data["frameStart"])
-        end = int(instance.data["frameEnd"])
-        skip = int(instance.data['preview_frame_skip'])
-
-        preview_frames = []
-        rest_of_frames = []
-
-        for i in range(start, end + 1, skip):
-            preview_frames.append(i)
-
-        for i in range(start, end + 1):
-            rest_of_frames.append(i)
-
-        rest_of_frames = list(set(rest_of_frames) - set(preview_frames))
-        frame_str = ','.join([str(x) for x in rest_of_frames])
-        return frame_str
-
     def process(self, instance):
+        # ------------------------------------------
         use_preview_frames = instance.data["use_preview_frames"]
         if not use_preview_frames:
-            super(HoudiniSubmitDeadline, self).process(instance)
-        else:
-            super(HoudiniSubmitDeadline, self).process(instance, "rest")
+            self.log.debug("Skipping Preview Houdini Job...")
+            return
+        # ------------------------------------------
+
+        super(PreviewHoudiniSubmitDeadline, self).process(instance)
 
         # TODO: Avoid the need for this logic here, needed for submit publish
         # Store output dir for unified publisher (filesequence)
