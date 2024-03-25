@@ -511,6 +511,10 @@ class PreviewProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
             create_metadata_path(instance, anatomy)
 
         # Generate temp files if no file exist
+        self.log.info("=============================")
+        self.log.info(publish_job["job"]["OutDir"])
+        self.log.info(publish_job["job"]["OutFile"])
+        self.log.info("=============================")
         self._generate_fill_in_frames(publish_job)
 
         with open(metadata_path, "w") as f:
@@ -601,6 +605,8 @@ class PreviewProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
     def _generate_fill_in_frames(self, publish_job):
         out_dir_list = publish_job["job"]["OutDir"]
         out_file_list = publish_job["job"]["OutFile"]
+        frame_start = publish_job["frameStart"]
+        frame_end = publish_job["frameEnd"]
 
         images = resources.get_resource("images")
         temp_exr = os.path.join(images, "default_black.exr")
@@ -608,13 +614,24 @@ class PreviewProcessSubmittedJobOnFarm(pyblish.api.InstancePlugin,
         for i in range(0, len(out_file_list)):
             current_dir = out_dir_list[i]
             current_file = out_file_list[i]
-            current_full_path = os.path.join(current_dir, current_file)
+            if "####" in current_file:
+                for j in range(frame_start, frame_end+1):
+                    replaced_file = current_file.replace("####", str(j).zfill(4))
+                    current_full_path = os.path.join(current_dir, replaced_file)
+                    # Check if file exists
+                    file_exist = os.path.exists(current_full_path)
+                    self.log.info(f"file check: {current_full_path}")
+                    if not file_exist:
+                        # Copy and rename temp file
+                        shutil.copy(temp_exr, current_full_path)
 
-            # Check if file exists
-            file_exist = os.path.exists(current_full_path)
-            if not file_exist:
-                # Copy and rename temp file
-                shutil.copy(temp_exr, current_full_path)
+            else:
+                current_full_path = os.path.join(current_dir, current_file)
+                # Check if file exists
+                file_exist = os.path.exists(current_full_path)
+                if not file_exist:
+                    # Copy and rename temp file
+                    shutil.copy(temp_exr, current_full_path)
 
 
     @classmethod

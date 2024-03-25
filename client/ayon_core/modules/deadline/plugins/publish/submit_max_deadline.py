@@ -105,16 +105,16 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         if use_preview_frames:
             job_info.JobDependencies = instance.data.get("previewDeadlineSubmissionJob")
 
-        attr_values = self.get_attr_values_from_data(instance.data)
+        # attr_values = self.get_attr_values_from_data(instance.data)
 
         # job_info.ChunkSize = attr_values.get("chunkSize", 1)
-        job_info.ChunkSize = instance.data.get("ui_settings_chunkSize")
+        job_info.ChunkSize = instance.data["chunk_size"]
         job_info.Comment = context.data.get("comment")
-        job_info.Priority = attr_values.get("priority", self.priority)
+        job_info.Priority = instance.data["priority"]
         # job_info.Group = attr_values.get("group", self.group)
-        job_info.Group = instance.data.get("ui_settings_group")
+        job_info.Group = instance.data["group"]
         job_info.LimitGroups = "redshift"
-        job_info.InitialStatus = attr_values.get("initialStatus", self.initialStatus)
+        job_info.InitialStatus = instance.data["initial_status"]
 
         # Add options from RenderGlobals
         render_globals = instance.data.get("renderGlobals", {})
@@ -437,20 +437,6 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     @classmethod
     def get_attribute_defs(cls):
         defs = super(MaxSubmitDeadline, cls).get_attribute_defs()
-
-        defs.extend([
-            NumberDef("priority",
-                      minimum=1,
-                      maximum=250,
-                      decimals=0,
-                      default=cls.priority,
-                      label="Priority"),
-
-            EnumDef("initialStatus",
-                    label="Preview Render Job State",
-                    items=["Active", "Suspended"],
-                    default=cls.initialStatus),
-            ])
 
         '''
         defs.extend([
