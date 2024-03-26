@@ -177,7 +177,7 @@ def containerise(name: str, nodes: list, context,
         "name": name,
         "namespace": namespace or "",
         "loader": loader,
-        "representation": context["representation"]["_id"],
+        "representation": context["representation"]["id"],
     }
     container_name = f"{namespace}:{name}{suffix}"
 
