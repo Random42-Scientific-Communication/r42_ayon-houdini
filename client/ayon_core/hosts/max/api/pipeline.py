@@ -168,6 +168,13 @@ def create_container_layer():
     new_layer.current = True
     return old_layer, new_layer
 
+def create_container_saver_layer():
+    old_layer = rt.LayerManager.current
+    new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Savers")
+    if not new_layer:
+        new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Savers")
+    new_layer.current = True
+    return old_layer, new_layer
 
 def containerise(name: str, nodes: list, context,
                  namespace=None, loader=None, suffix="_CON"):

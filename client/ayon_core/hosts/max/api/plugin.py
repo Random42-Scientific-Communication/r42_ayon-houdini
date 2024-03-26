@@ -15,6 +15,7 @@ from ayon_core.pipeline import (
 )
 
 from .lib import imprint, lsattr, read
+from ayon_core.hosts.max.api import pipeline
 
 # --------------------------------
 from ayon_core.hosts.max.api import R42_ContainerUI_Addon
@@ -152,15 +153,6 @@ class OpenPypeCreatorError(CreatorError):
 
 class MaxCreatorBase(object):
     @staticmethod
-    def create_container_layer():
-        old_layer = rt.LayerManager.current
-        new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Savers")
-        if not new_layer:
-            new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Savers")
-        new_layer.current = True
-        return old_layer, new_layer
-
-    @staticmethod
     def cache_instance_data(shared_data):
         if shared_data.get("max_cached_instances") is not None:
             return shared_data
@@ -194,7 +186,7 @@ class MaxCreatorBase(object):
             instance
         """
         # Set to new layer
-        old_layer, new_layer = MaxCreatorBase.create_container_layer()
+        old_layer, new_layer = pipeline.create_container_saver_layer()
 
         if isinstance(node, str):
             node = rt.Container(name=node)
