@@ -705,8 +705,8 @@ class CreateWidget(QtWidgets.QWidget):
         R42 Add Start
         --------------------- '''
         r42_custom = False
-        if re.search("render|image", subset_name, flags=re.IGNORECASE):
-            if re.search("render", subset_name, flags=re.IGNORECASE):
+        if re.search("render|image", product_name, flags=re.IGNORECASE):
+            if re.search("render", product_name, flags=re.IGNORECASE):
                 new_variant_value = "render(.+)"
             else:
                 new_variant_value = "image(.+)"

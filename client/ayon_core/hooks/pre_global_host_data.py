@@ -67,6 +67,7 @@ class GlobalHostDataHook(PreLaunchHook):
         self.data["project_entity"] = project_entity
 
         # Anatomy
+        self.log.info(f"project_entity is {project_entity}")
         self.data["anatomy"] = Anatomy(
             project_name, project_entity=project_entity
         )

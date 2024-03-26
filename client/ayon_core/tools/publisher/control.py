@@ -1778,10 +1778,11 @@ class PublisherController(BasePublisherController):
             folder_ids={folder_item.entity_id},
             fields={"name"}
         )
+
         return {
             product_entity["name"]
             for product_entity in product_entities
-            if product_entity["data"].get("archived") is not True
+            if product_entity.get("archived") is not True
         }
 
     def reset(self):
