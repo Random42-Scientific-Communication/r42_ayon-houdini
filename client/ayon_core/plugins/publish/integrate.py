@@ -11,6 +11,7 @@ from ayon_api import (
     get_product_by_name,
     get_version_by_name,
     get_representations,
+    get_version_by_id
 )
 from ayon_api.operations import (
     OperationsSession,
@@ -329,10 +330,10 @@ class IntegrateAsset(pyblish.api.InstancePlugin):
             ("transfers", FileTransaction.MODE_COPY),
             ("hardlinks", FileTransaction.MODE_HARDLINK)
         ]
+
         for files_type, copy_mode in file_copy_modes:
             for src, dst in instance.data.get(files_type, []):
                 self._validate_path_in_project_roots(anatomy, dst)
-
                 file_transactions.add(src, dst, mode=copy_mode)
                 resource_destinations.add(os.path.abspath(dst))
 
@@ -342,6 +343,10 @@ class IntegrateAsset(pyblish.api.InstancePlugin):
         # publish to the same version number since that chance can greatly
         # increase if the file transaction takes a long time.
         op_session.commit()
+
+        # ====================== R42 Custom Start =================================
+        self._r42_custom_attrib_for_storyboard_image(instance, prepared_representations, op_session)
+        # ====================== R42 Custom End =================================
 
         self.log.info((
             "Product '{}' version {} written to database.."
@@ -1090,3 +1095,33 @@ class IntegrateAsset(pyblish.api.InstancePlugin):
                 attributes[key] = get_attributes_for_type(key)
             context.data["ayonAttributes"] = attributes
         return attributes
+
+    def _r42_custom_attrib_for_storyboard_image(self, instance, prepared_representations, op_session):
+        import os
+
+        project_name = instance.data["anatomyData"]["project"]["name"]
+        publish_family = instance.data['anatomyData']['family']
+        entity_type = "version"
+        entity_id = instance.data['versionEntity']['id']
+
+        if publish_family != "image":
+            return
+
+        version_root_publish = []
+        for rep in prepared_representations:
+            version_root = os.path.dirname(rep['published_files'][0])
+            version_root_publish.append(version_root)
+
+        if len(version_root_publish) == 0:
+            return
+
+        version_root_publish = list(set(version_root_publish))[0]
+        update_data = {'attrib':{'fileLocation': version_root_publish}}
+
+
+        op_session.update_entity(project_name=project_name,
+                                 entity_type=entity_type,
+                                 entity_id=entity_id,
+                                 update_data=update_data)
+
+        op_session.commit()
