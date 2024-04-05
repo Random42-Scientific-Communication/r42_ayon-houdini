@@ -20,7 +20,7 @@ class OpenTaskPath(LauncherAction):
 
     def is_compatible(self, session):
         """Return whether the action is compatible with the session"""
-        return bool(session.get("AYON_FOLDER_PATH"))
+        return bool(session.get("AYON_FOLDER_PATH")) and bool(session.get("AYON_TASK_NAME"))
 
     def process(self, session, **kwargs):
         from qtpy import QtCore, QtWidgets
@@ -63,8 +63,6 @@ class OpenTaskPath(LauncherAction):
     def _get_workdir(self, project_name, folder_path, task_name):
         project_entity = ayon_api.get_project(project_name)
         folder_entity = ayon_api.get_folder_by_path(project_name, folder_path)
-        if not task_name:
-            raise AssertionError("Please select a task.")
         task_entity = ayon_api.get_task_by_name(
             project_name, folder_entity["id"], task_name
         )
