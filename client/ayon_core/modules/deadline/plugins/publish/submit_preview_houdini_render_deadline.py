@@ -227,6 +227,10 @@ class PreviewHoudiniSubmitDeadline(
         if split_render_job and not is_export_job:
             job_info.IsFrameDependent = True
 
+        self.log.debug("====================================")
+        self.log.debug(f"Job Info Frame Dependent = {job_info.IsFrameDependent}")
+        self.log.debug("====================================")
+
         job_info.Pool = instance.data.get("primaryPool")
         job_info.SecondaryPool = instance.data.get("secondaryPool")
         job_info.Group = self.group
