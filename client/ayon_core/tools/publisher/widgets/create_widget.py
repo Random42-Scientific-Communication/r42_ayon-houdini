@@ -705,14 +705,15 @@ class CreateWidget(QtWidgets.QWidget):
         R42 Add Start
         --------------------- '''
         r42_custom = False
-        if re.search("render|image", product_name, flags=re.IGNORECASE):
-            if re.search("render", product_name, flags=re.IGNORECASE):
-                new_variant_value = "render(.+)"
-            else:
-                new_variant_value = "image(.+)"
-            compare_regex = re.compile(new_variant_value)
+        if re.search("render", product_name, flags=re.IGNORECASE):
+            new_variant_value = "render(.+)"
             r42_custom = True
-        ''' ---------------------
+        elif re.search("img", product_name, flags=re.IGNORECASE):
+            new_variant_value = "img(.+)"
+            r42_custom = True
+        if r42_custom:
+            compare_regex = re.compile(new_variant_value)
+        """ ---------------------
         R42 Add End
         --------------------- '''
 
