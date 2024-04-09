@@ -727,6 +727,7 @@ class CreateWidget(QtWidgets.QWidget):
                     R42 Add Start
                     --------------------- '''
                     known_prefix = ["Max", "Hou"]
+                    known_prefix = ["Max", "Hou", "Max_"]
                     if not r42_custom:
                         variant_hints |= set(_result.groups())
                     else:
