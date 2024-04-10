@@ -705,6 +705,8 @@ class CreateWidget(QtWidgets.QWidget):
         R42 Add Start
         --------------------- '''
         r42_custom = False
+        # DEPRECATED render and image might not be used in production template profile names
+        # If not in use search_render and search_image could be "rdr" and "img"
         search_render = r"(?:render|rdr)"
         search_image = r"(?:image|img)"
         if re.search(search_render, product_name, flags=re.IGNORECASE):
