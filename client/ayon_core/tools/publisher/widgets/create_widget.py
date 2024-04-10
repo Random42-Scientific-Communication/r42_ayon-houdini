@@ -708,16 +708,14 @@ class CreateWidget(QtWidgets.QWidget):
         if re.search("render", product_name, flags=re.IGNORECASE):
             new_variant_value = "render(.+)"
             r42_custom = True
-        elif re.search("img", product_name, flags=re.IGNORECASE):
-            new_variant_value = "img(.+)"
+        elif re.search("image", product_name, flags=re.IGNORECASE):
+            new_variant_value = "(?:image|img)(.+)"
             r42_custom = True
         if r42_custom:
             compare_regex = re.compile(new_variant_value)
-        """ ---------------------
+        ''' ---------------------
         R42 Add End
         --------------------- '''
-
-        
         variant_hints = set()
         if variant_value:
             for _name in existing_product_names:
@@ -726,7 +724,6 @@ class CreateWidget(QtWidgets.QWidget):
                     ''' ---------------------
                     R42 Add Start
                     --------------------- '''
-                    known_prefix = ["Max", "Hou"]
                     known_prefix = ["Max", "Hou", "Max_"]
                     if not r42_custom:
                         variant_hints |= set(_result.groups())
