@@ -705,10 +705,12 @@ class CreateWidget(QtWidgets.QWidget):
         R42 Add Start
         --------------------- '''
         r42_custom = False
-        if re.search("render", product_name, flags=re.IGNORECASE):
-            new_variant_value = "render(.+)"
+        search_render = r"(?:render|rdr)"
+        search_image = r"(?:image|img)"
+        if re.search(search_render, product_name, flags=re.IGNORECASE):
+            new_variant_value = "(?:render|rdr)(.+)"
             r42_custom = True
-        elif re.search("image", product_name, flags=re.IGNORECASE):
+        elif re.search(search_image, product_name, flags=re.IGNORECASE):
             new_variant_value = "(?:image|img)(.+)"
             r42_custom = True
         if r42_custom:
@@ -724,7 +726,7 @@ class CreateWidget(QtWidgets.QWidget):
                     ''' ---------------------
                     R42 Add Start
                     --------------------- '''
-                    known_prefix = ["Max", "Hou", "Max_"]
+                    known_prefix = ["Max", "Hou", "Max_", "Fus_"]
                     if not r42_custom:
                         variant_hints |= set(_result.groups())
                     else:
