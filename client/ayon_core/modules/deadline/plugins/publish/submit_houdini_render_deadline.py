@@ -220,6 +220,10 @@ class HoudiniSubmitDeadline(
         if split_render_job and not is_export_job:
             job_info.IsFrameDependent = True
 
+        # If use preview frames, we want the preview jobs to be done first
+        if use_preview_frames:
+            job_info.IsFrameDependent = False
+
         self.log.debug("====================================")
         self.log.debug(f"Job Info Frame Dependent = {job_info.IsFrameDependent}")
         self.log.debug("====================================")
