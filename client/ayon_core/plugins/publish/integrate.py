@@ -1105,16 +1105,13 @@ class IntegrateAsset(pyblish.api.InstancePlugin):
         if publish_family != "image":
             return
 
-        version_root_publish = []
-        for rep in prepared_representations:
-            version_root = os.path.dirname(rep['published_files'][0])
-            version_root_publish.append(version_root)
+        # Grab the first representation of the published file
+        representation = prepared_representations[0]['published_files'][0]
 
-        if len(version_root_publish) == 0:
+        if not representation:
             return
 
-        version_root_publish = list(set(version_root_publish))[0]
-        update_data = {'attrib':{'fileLocation': version_root_publish}}
+        update_data = {'attrib':{'fileLocation': representation}}
 
 
         op_session.update_entity(project_name=project_name,
