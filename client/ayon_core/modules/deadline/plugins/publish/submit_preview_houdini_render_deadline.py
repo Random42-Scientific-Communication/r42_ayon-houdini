@@ -172,7 +172,9 @@ class PreviewHoudiniSubmitDeadline(
 
         filepath = context.data["currentFile"]
         filename = os.path.basename(filepath)
-        job_info.Name = "{} - {} {} (Preview-Frames)".format(filename, instance.name, job_type)
+        height = instance.data["taskEntity"]["attrib"]["resolutionHeight"]
+        width = instance.data["taskEntity"]["attrib"]["resolutionWidth"]
+        job_info.Name = "{} - {} {} [{}x{}](Preview-Frames)".format(filename, instance.name, job_type, width, height)
         job_info.BatchName = filename
 
         job_info.UserName = context.data.get(
