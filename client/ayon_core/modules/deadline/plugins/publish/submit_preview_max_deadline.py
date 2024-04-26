@@ -86,7 +86,9 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
         src_filepath = context.data["currentFile"]
         src_filename = os.path.basename(src_filepath)
-        job_info.Name = "%s - %s (Preview-Frames)" % (src_filename, instance.name)
+        height = instance.data["taskEntity"]["attrib"]["resolutionHeight"]
+        width = instance.data["taskEntity"]["attrib"]["resolutionWidth"]
+        job_info.Name = "%s - %s [%sx%s](Preview-Frames)" % (src_filename, instance.name, width, height)
         job_info.BatchName = src_filename
         job_info.Plugin = instance.data["plugin"]
         job_info.UserName = context.data.get("deadlineUser", getpass.getuser())
@@ -296,8 +298,10 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
         src_filepath = context.data["currentFile"]
         src_filename = os.path.basename(src_filepath)
-        job_info.Name = "%s - %s - %s" % (
-            src_filename, instance.name, camera)
+        height = instance.data["taskEntity"]["attrib"]["resolutionHeight"]
+        width = instance.data["taskEntity"]["attrib"]["resolutionWidth"]
+        job_info.Name = "%s - %s - %s [%sx%s]" % (
+            src_filename, instance.name, camera, width, height)
         for filepath in self._iter_expected_files(exp):
             if camera not in filepath:
                 continue

@@ -147,6 +147,9 @@ class FusionSubmitDeadline(
                 )
 
         filename = os.path.basename(script_path)
+        height = instance.data["taskEntity"]["attrib"]["resolutionHeight"]
+        width = instance.data["taskEntity"]["attrib"]["resolutionWidth"]
+        jobname = f"{filename} [{width}x{height}]"
 
         # Documentation for keys available at:
         # https://docs.thinkboxsoftware.com
@@ -161,7 +164,7 @@ class FusionSubmitDeadline(
                 "AssetDependency0": script_path,
 
                 # Job name, as seen in Monitor
-                "Name": filename,
+                "Name": jobname,
 
                 "Priority": attribute_values.get(
                     "priority", self.priority),
