@@ -16,7 +16,7 @@ class PublishDetectionAction(LauncherAction):
     name = "review_explorer"
     label = "Review Explorer"
     icons = resources.get_resource("icons")
-    icon = os.path.join(icons, "circle_yellow.png")
+    icon = os.path.join(icons, "x_drive.png")
     order = 500
 
     def __init__(self):
