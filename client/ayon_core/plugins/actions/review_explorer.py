@@ -13,8 +13,8 @@ importlib.reload(ui_review_explorer)
 
 
 class PublishDetectionAction(LauncherAction):
-    name = "publish_explorer"
-    label = "Publish Explorer"
+    name = "review_explorer"
+    label = "Review Explorer"
     icons = resources.get_resource("icons")
     icon = os.path.join(icons, "circle_yellow.png")
     order = 500
@@ -24,7 +24,8 @@ class PublishDetectionAction(LauncherAction):
 
     def is_compatible(self, selection):
         """Return whether the action is compatible with the session"""
-        return selection.is_folder_selected
+        folder_entity = selection.folder_entity
+        return selection.is_folder_selected and folder_entity["folderType"] == "Shot"
 
     def process(self, session, **kwargs):
         app = QtWidgets.QApplication.instance()
