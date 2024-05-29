@@ -1,5 +1,5 @@
 from qtpy import QtWidgets, QtGui, QtCore
-
+import os
 
 class ReviewExplorerUIGraphics(QtWidgets.QDialog):
     """
@@ -14,6 +14,7 @@ class ReviewExplorerUIGraphics(QtWidgets.QDialog):
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)
         self.setMinimumWidth(300)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setStyleSheet(load_stylesheet())
 
         # -- Create the layout
         self.layout = QtWidgets.QVBoxLayout()
@@ -43,3 +44,14 @@ class ReviewExplorerUIGraphics(QtWidgets.QDialog):
         self.layout.addWidget(self.checkDebug)
         self.layout.addWidget(self.debugBox)
         self.setLayout(self.layout)
+
+
+def load_stylesheet():
+    path = os.path.join(os.path.dirname(__file__), "action_menu_style.qss")
+    if not os.path.exists(path):
+        print("Unable to load stylesheet, file not found in resources")
+        return ""
+
+    with open(path, "r") as file_stream:
+        stylesheet = file_stream.read()
+    return stylesheet
