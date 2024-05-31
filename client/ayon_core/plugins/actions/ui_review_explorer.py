@@ -117,26 +117,29 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
 
         # ---- Query the representation ----
         for version in version_list:
-            representation_data = ayon_api.get_representations(project_name=self.project_name,
-                                                               version_ids=[version['id']])
-            rep_data_as_list = list(representation_data)
-            for rep in rep_data_as_list:
-                valid = self._check_valid_representation(rep)
-                if not valid:
-                    continue
+            try:
+                representation_data = ayon_api.get_representations(project_name=self.project_name,
+                                                                   version_ids=[version['id']])
+                rep_data_as_list = list(representation_data)
+                for rep in rep_data_as_list:
+                    valid = self._check_valid_representation(rep)
+                    if not valid:
+                        continue
 
-                # ---- Extract out the essential data ----
-                data = {
-                    "subset_name": rep["context"]["subset"],
-                    "rep_path": rep['attrib']['path'],
-                    "project_name": self.project_name,
-                    "project_code": rep["context"]["project"]["code"],
-                    "shot_name": rep["context"]["folder"]["name"],
-                    "folder_path": self.folder_path,
-                    "rep_created": rep["createdAt"]
-                }
-                review_instance = ReviewInstance(data)
-                self.review_instance_dict[data['subset_name']] = review_instance
+                    # ---- Extract out the essential data ----
+                    data = {
+                        "subset_name": rep["context"]["subset"],
+                        "rep_path": rep['attrib']['path'],
+                        "project_name": self.project_name,
+                        "project_code": rep["context"]["project"]["code"],
+                        "shot_name": rep["context"]["folder"]["name"],
+                        "folder_path": self.folder_path,
+                        "rep_created": rep["createdAt"]
+                    }
+                    review_instance = ReviewInstance(data)
+                    self.review_instance_dict[data['subset_name']] = review_instance
+            except TypeError:
+                continue
 
     def populate_x_drive_path(self):
         anatomy = Anatomy(
