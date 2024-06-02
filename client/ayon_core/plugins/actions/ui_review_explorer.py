@@ -14,7 +14,7 @@ import ayon_api
 importlib.reload(ui_review_explorer_graphics)
 
 
-class ReviewInstance:
+class DataInstance:
     def __init__(self, data):
         self.name = data["subset_name"]
         self.path = data["rep_path"]
@@ -39,6 +39,7 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         self.folder_name = self.folder_id = self.folder_path = None
         self.x_dir = self.x_file = None
         self.review_instance_dict = {}
+        self.exr_instance_dict = {}
 
         self._populate_data()
         self.debug()
@@ -46,6 +47,7 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         # -- Connect
         self.connect_ui()
         self.populate_review_instances()
+        self.populate_exr_instances()
 
     # ------------------------
     # -- UI FUNCTIONS --
@@ -56,6 +58,7 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         self.buttonMoveToX.clicked.connect(self.copy_selected_to_x)
         self.buttonLatestToX.clicked.connect(self.copy_latest_to_x)
         self.checkDebug.stateChanged.connect(self.debug_visibility)
+        self.buttonEXRs.clicked.connect(self.open_exr_dir)
 
     def debug_visibility(self):
         self.debugBox.setVisible(self.checkDebug.isChecked())
@@ -74,29 +77,34 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
 
     def _check_valid_representation(self, rep_data):
         # ---- Check if it is ProRes representation ----
+        '''
+        0 - Not Valid
+        1 - Review
+        2- Exrs
+        '''
         try:
             if rep_data["context"]["output"] != "ProRes":
-                return False
+                return 0
         except KeyError:
-            return False
+            return 0
 
         # ---- Check if it is storyboard comp ----
         task_type = rep_data["context"]["task"]["type"]
         if task_type == "Storyboard Comp":
-            return False
+            return 0
 
         # ---- Check if the folder is shot context ----
         shot_name = rep_data["context"]["folder"]["name"]
         folder_data = ayon_api.get_folder_by_name(project_name=self.project_name,
                                                   folder_name=shot_name)
         if folder_data["folderType"] != "Shot":
-            return False
+            return 0
 
         # ---- Check if it is ProRes exr ----
         if rep_data["context"]["representation"] == "ProRes_exr":
-            return False
+            return 2
 
-        return True
+        return 1
 
     def populate_prores_data(self):
         # ---- Query the products ----
@@ -123,7 +131,7 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
                 rep_data_as_list = list(representation_data)
                 for rep in rep_data_as_list:
                     valid = self._check_valid_representation(rep)
-                    if not valid:
+                    if valid == 0:
                         continue
 
                     # ---- Extract out the essential data ----
@@ -136,8 +144,12 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
                         "folder_path": self.folder_path,
                         "rep_created": rep["createdAt"]
                     }
-                    review_instance = ReviewInstance(data)
-                    self.review_instance_dict[data['subset_name']] = review_instance
+                    data_instance = DataInstance(data)
+                    if valid == 1:
+                        self.review_instance_dict[data['subset_name']] = data_instance
+                    else:
+                        self.exr_instance_dict[data['subset_name']] = data_instance
+
             except TypeError:
                 continue
 
@@ -165,6 +177,11 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         self.comboProducts.clear()
         for review_name in list(self.review_instance_dict.keys()):
             self.comboProducts.addItem(review_name)
+
+    def populate_exr_instances(self):
+        self.comboEXRs.clear()
+        for exr_name in list(self.exr_instance_dict.keys()):
+            self.comboEXRs.addItem(exr_name)
 
     def compare_prores_data(self):
         latest_instance = None
@@ -197,6 +214,14 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
     def open_review_dir(self):
         product_name = self.comboProducts.currentText()
         path = self.review_instance_dict[product_name].directory
+        if not path:
+            return
+
+        self.open_in_explorer(path)
+
+    def open_exr_dir(self):
+        exr_name = self.comboEXRs.currentText()
+        path = self.exr_instance_dict[exr_name].directory
         if not path:
             return
 
