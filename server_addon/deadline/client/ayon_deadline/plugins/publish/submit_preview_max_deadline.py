@@ -20,6 +20,7 @@ from ayon_max.api.lib import (
     get_current_renderer,
     get_multipass_setting
 )
+import pyblish.api
 from ayon_max.api.lib_rendersettings import RenderSettings
 from ayon_deadline import abstract_submit_deadline
 from ayon_deadline.abstract_submit_deadline import DeadlineJobInfo
@@ -40,6 +41,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     hosts = ["max"]
     families = ["maxrender"]
     targets = ["local"]
+    order = pyblish.api.IntegratorOrder + 0.24
     settings_category = "deadline"
 
     use_published = True

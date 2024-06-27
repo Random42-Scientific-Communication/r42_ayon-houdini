@@ -20,6 +20,7 @@ from ayon_max.api.lib import (
     get_current_renderer,
     get_multipass_setting
 )
+import pyblish.api
 from ayon_max.api.lib_rendersettings import RenderSettings
 from ayon_deadline import abstract_submit_deadline
 from ayon_deadline.abstract_submit_deadline import DeadlineJobInfo
@@ -40,6 +41,7 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     hosts = ["max"]
     families = ["maxrender"]
     targets = ["local"]
+    order = pyblish.api.IntegratorOrder + 0.3
     settings_category = "deadline"
 
     use_published = True
@@ -91,6 +93,10 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         # Deadline requires integers in frame range
 
         use_preview_frames = instance.data["use_preview_frames"]
+        self.log.debug("===============================================")
+        self.log.debug(f"use_preview_frames: {use_preview_frames}")
+        self.log.debug("===============================================")
+
 
         if not use_preview_frames:
             frames = "{start}-{end}".format(
@@ -106,6 +112,9 @@ class MaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
 
         if use_preview_frames:
             job_info.JobDependencies = instance.data.get("previewDeadlineSubmissionJob")
+            self.log.debug("===============================================")
+            self.log.debug(f"instance.data.get('previewDeadlineSubmissionJob'): {instance.data.get('previewDeadlineSubmissionJob')}")
+            self.log.debug("===============================================")
 
         # attr_values = self.get_attr_values_from_data(instance.data)
 

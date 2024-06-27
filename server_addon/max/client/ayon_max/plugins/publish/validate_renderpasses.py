@@ -86,6 +86,9 @@ class ValidateRenderPasses(OptionalPyblishPluginMixin,
                             invalid_folder_name))
         '''
         expected_output_path = cls.generate_temp_output_path(instance)
+
+        cls.log.debug(f"expected output path is {expected_output_path}")
+
         if expected_output_path not in rt.rendOutputFilename:
             cls.log.error(
                 "Render output folder must include"
