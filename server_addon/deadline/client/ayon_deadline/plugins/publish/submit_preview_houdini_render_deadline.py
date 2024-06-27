@@ -194,7 +194,7 @@ class PreviewHoudiniSubmitDeadline(
         if split_render_job and is_export_job:
             job_info.Priority = instance.data["export_priority"]
         else:
-            job_info.Priority = instance.data["priority"]
+            job_info.Priority = instance.data["preview_priority"]
 
         if is_in_tests():
             job_info.BatchName += datetime.now().strftime("%d%m%Y%H%M%S")
@@ -258,7 +258,7 @@ class PreviewHoudiniSubmitDeadline(
             job_info.Priority = instance.data["export_priority"]
             job_info.ChunkSize = instance.data["export_chunk_size"]
         else:
-            job_info.Priority = instance.data["priority"]
+            job_info.Priority = instance.data["preview_priority"]
             job_info.ChunkSize = instance.data["chunk_size"]
 
         job_info.Comment = context.data.get("comment")
