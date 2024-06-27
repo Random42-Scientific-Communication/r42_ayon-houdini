@@ -6,8 +6,8 @@ from datetime import datetime
 import pyblish.api
 
 from ayon_core.pipeline import AYONPyblishPluginMixin
-from openpype_modules.deadline import abstract_submit_deadline
-from openpype_modules.deadline.abstract_submit_deadline import DeadlineJobInfo
+from ayon_deadline import abstract_submit_deadline
+from ayon_deadline.abstract_submit_deadline import DeadlineJobInfo
 from ayon_core.lib import (
     is_in_tests,
     BoolDef,
@@ -76,6 +76,7 @@ class PreviewHoudiniSubmitDeadline(
                 "karma_rop",
                 "vray_rop"]
     targets = ["local"]
+    settings_category = "deadline"
     use_published = True
 
     # presets
@@ -363,6 +364,11 @@ class PreviewHoudiniSubmitDeadline(
         return attr.asdict(plugin_info)
 
     def process(self, instance):
+        if not instance.data["farm"]:
+            self.log.debug("Render on farm is disabled. "
+                           "Skipping deadline submission.")
+            return
+
         # ------------------------------------------
         use_preview_frames = instance.data["use_preview_frames"]
         if not use_preview_frames:

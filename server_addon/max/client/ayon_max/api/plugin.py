@@ -15,10 +15,10 @@ from ayon_core.pipeline import (
 )
 
 from .lib import imprint, lsattr, read
-from ayon_core.hosts.max.api import pipeline
+from ayon_max.api import pipeline
 
 # --------------------------------
-from ayon_core.hosts.max.api import R42_ContainerUI_Addon
+from ayon_max.api import R42_ContainerUI_Addon
 
 R42_CONTAINER_UI_POPUP = R42_ContainerUI_Addon.R42_CONTAINER_UI_POPUP
 # --------------------------------

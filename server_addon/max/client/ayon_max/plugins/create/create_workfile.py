@@ -7,7 +7,7 @@ from ayon_max.api import plugin
 from ayon_max.api.lib import read, imprint
 from pymxs import runtime as rt
 
-from ayon_core.hosts.max.api import pipeline
+from ayon_max.api import pipeline
 
 
 class CreateWorkfile(plugin.MaxCreatorBase, AutoCreator):
