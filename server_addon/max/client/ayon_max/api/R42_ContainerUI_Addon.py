@@ -1,4 +1,4 @@
-R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:780 height:570
+R42_CONTAINER_UI_POPUP = """rollout AyonContainerEdit "AYON Container Edit" width:780 height:570
 (
 	/*--------------
 	   VARIABLES
@@ -147,11 +147,11 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 
 		-- if current_all_selection.count == 0 do return False
 
-		-- op_data = selection[1].modifiers[1]
+		-- ayon_data = selection[1].modifiers[1]
 		select current_self
 		IsolateSelection.ExitIsolateSelectionMode()
-		op_data = current_modifier
-		op_data.sel_list = #()
+		ayon_data = current_modifier
+		ayon_data.sel_list = #()
 
 		temp_arr = #()
 		i_node_arr = #()
@@ -162,10 +162,10 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 			name = c as string
 			append temp_arr handle_name
 			append i_node_arr node_ref
-			append op_data.sel_list name
+			append ayon_data.sel_list name
 		)
-		op_data.all_handles = i_node_arr
-		op_data.OPparams.list_node.items = temp_arr
+		ayon_data.all_handles = i_node_arr
+		ayon_data.AYONparams.list_node.items = temp_arr
 	)
 	
 	fn double_click_functionality ui_object sel =
@@ -204,7 +204,7 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 	/*--------------
 	   CALLBACKS
 	--------------*/
-	on OPContainerEdit open do
+	on AyonContainerEdit open do
 	(
 		-- Grab current Container
 		current_handles = selection[1].modifiers[1].all_handles
@@ -391,13 +391,13 @@ R42_CONTAINER_UI_POPUP = """rollout OPContainerEdit "OP Container Edit" width:78
 	on b_accept pressed do
 	(
 		updateContainer()
-		destroyDialog OPContainerEdit
+		destroyDialog AyonContainerEdit
 	)
 
 	on b_cancel pressed do
 	(
 		select current_self
 		IsolateSelection.ExitIsolateSelectionMode()
-		destroyDialog OPContainerEdit
+		destroyDialog AyonContainerEdit
 	)
 )"""

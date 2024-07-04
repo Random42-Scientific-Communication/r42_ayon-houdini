@@ -25,13 +25,13 @@ R42_CONTAINER_UI_POPUP = R42_ContainerUI_Addon.R42_CONTAINER_UI_POPUP
 
 MS_CUSTOM_ATTRIB = f"""attributes "openPypeData"
 (
-    parameters main rollout:OPparams
+    parameters main rollout:AYONparams
     (
         all_handles type:#maxObjectTab tabSize:0 tabSizeVariable:on
         sel_list type:#stringTab tabSize:0 tabSizeVariable:on
     )
 
-    rollout OPparams "OP Parameters"
+    rollout AYONparams "AYON Parameters"
     (
         listbox list_node "Node References" items:#()
         button button_add "Add to Container"
@@ -79,7 +79,7 @@ MS_CUSTOM_ATTRIB = f"""attributes "openPypeData"
         on button_add pressed do
         (
             {R42_CONTAINER_UI_POPUP}
-            createDialog OPContainerEdit modal:true
+            createDialog AyonContainerEdit modal:true
         )
 
         /*
@@ -129,7 +129,7 @@ MS_CUSTOM_ATTRIB = f"""attributes "openPypeData"
         )
         */
 
-        on OPparams open do
+        on AYONparams open do
         (
             if all_handles.count != 0 then
             (
@@ -190,7 +190,7 @@ class MaxCreatorBase(object):
         attrs = rt.Execute(MS_CUSTOM_ATTRIB)
         modifier = rt.EmptyModifier()
         rt.addModifier(node, modifier)
-        node.modifiers[0].name = "OP Data"
+        node.modifiers[0].name = "AYON Data"
         rt.custAttributes.add(node.modifiers[0], attrs)
 
         # Reset the layer back

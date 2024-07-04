@@ -188,17 +188,17 @@ def on_new():
 
 def create_container_layer():
     old_layer = rt.LayerManager.current
-    new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Loaders")
+    new_layer = rt.LayerManager.getLayerFromName("0_AYON_Containers_Loaders")
     if not new_layer:
-        new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Loaders")
+        new_layer = rt.LayerManager.newLayerFromName("0_AYON_Containers_Loaders")
     new_layer.current = True
     return old_layer, new_layer
 
 def create_container_saver_layer():
     old_layer = rt.LayerManager.current
-    new_layer = rt.LayerManager.getLayerFromName("0_OP_Containers_Savers")
+    new_layer = rt.LayerManager.getLayerFromName("0_AYON_Containers_Savers")
     if not new_layer:
-        new_layer = rt.LayerManager.newLayerFromName("0_OP_Containers_Savers")
+        new_layer = rt.LayerManager.newLayerFromName("0_AYON_Containers_Savers")
     new_layer.current = True
     return old_layer, new_layer
 
@@ -248,7 +248,7 @@ def import_custom_attribute_data(container: str, selections: list):
     attrs = load_custom_attribute_data()
     modifier = rt.EmptyModifier()
     rt.addModifier(container, modifier)
-    container.modifiers[0].name = "OP Data"
+    container.modifiers[0].name = "AYON Data"
     rt.custAttributes.add(container.modifiers[0], attrs)
     node_list = []
     sel_list = []
@@ -274,16 +274,16 @@ def update_custom_attribute_data(container: str, selections: list):
         selections (list): nodes to be added into
         group in custom attributes
     """
-    if container.modifiers[0].name == "OP Data":
+    if container.modifiers[0].name == "AYON Data":
         rt.deleteModifier(container, container.modifiers[0])
     import_custom_attribute_data(container, selections)
 
 
 def get_previous_loaded_object(container: str):
-    """Get previous loaded_object through the OP data
+    """Get previous loaded_object through the OP data (Now Ayon Data)
 
     Args:
-        container (str): the container which stores the OP data
+        container (str): the container which stores the OP data (Now Ayon Data)
 
     Returns:
         node_list(list): list of nodes which are previously loaded
@@ -302,7 +302,7 @@ def remove_container_data(container_node: str):
     Args:
         container_node (str): container node
     """
-    if container_node.modifiers[0].name == "OP Data":
+    if container_node.modifiers[0].name == "AYON Data":
         all_set_members_names = [
             member.node for member
             in container_node.modifiers[0].openPypeData.all_handles]
