@@ -260,10 +260,13 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
             message += message_dict
             message += f"\n**************************\n"
 
-        latest_instance = self.compare_prores_data()
         message += f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
-        message_dict = pprint.pformat(latest_instance.__dict__)
-        message += message_dict
+        try:
+            latest_instance = self.compare_prores_data()
+            message_dict = pprint.pformat(latest_instance.__dict__)
+            message += message_dict
+        except AttributeError:
+            message += "NO PRORES DATA FILE YET"
         message += f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n"
 
 
