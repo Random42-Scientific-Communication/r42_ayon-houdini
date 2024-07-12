@@ -6,13 +6,14 @@ from datetime import datetime
 import pyblish.api
 
 from ayon_core.pipeline import AYONPyblishPluginMixin
-from ayon_deadline import abstract_submit_deadline
-from ayon_deadline.abstract_submit_deadline import DeadlineJobInfo
 from ayon_core.lib import (
     is_in_tests,
     BoolDef,
     NumberDef
 )
+
+from ayon_deadline import abstract_submit_deadline
+from ayon_deadline.abstract_submit_deadline import DeadlineJobInfo
 
 
 @attr.s
@@ -79,75 +80,10 @@ class PreviewHoudiniSubmitDeadline(
     settings_category = "deadline"
     use_published = True
 
-    # presets
-    export_priority = 50
-    export_chunk_size = 10
-    export_group = ""
-    priority = 50
-    chunk_size = 1
-    group = ""
-
-    @classmethod
-
-    def get_attribute_defs(cls):
-        return []
-        '''
-        return [
-            BoolDef(
-                "suspend_publish",
-                default=False,
-                label="Suspend publish"
-            ),
-            NumberDef(
-                "priority",
-                label="Priority",
-                default=cls.priority,
-                decimals=0
-            ),
-            NumberDef(
-                "chunk",
-                label="Frames Per Task",
-                default=cls.chunk_size,
-                decimals=0,
-                minimum=1,
-                maximum=1000
-            ),
-            TextDef(
-                "group",
-                default=cls.group,
-                label="Group Name"
-            ),
-            NumberDef(
-                "export_priority",
-                label="Export Priority",
-                default=cls.export_priority,
-                decimals=0
-            ),
-            NumberDef(
-                "export_chunk",
-                label="Export Frames Per Task",
-                default=cls.export_chunk_size,
-                decimals=0,
-                minimum=1,
-                maximum=1000
-            ),
-            TextDef(
-                "export_group",
-                default=cls.export_group,
-                label="Export Group Name"
-            ),
-        ]
-        '''
-
-
     def get_job_info(self, dependency_job_ids=None):
 
         instance = self._instance
         context = instance.context
-
-        # ------------------------------------------
-        # attribute_values = self.get_attr_values_from_data(instance.data)
-        # ------------------------------------------
 
         # Whether Deadline render submission is being split in two
         # (extract + render)
@@ -161,9 +97,8 @@ class PreviewHoudiniSubmitDeadline(
 
         job_type = "[RENDER]"
         if split_render_job and not is_export_job:
-            # Convert from family to Deadline plugin name
-            # i.e., arnold_rop -> Arnold
-            plugin = instance.data["productType"].replace("_rop", "").capitalize()
+            product_type = instance.data["productType"]
+            plugin = product_type.replace("_rop", "").capitalize()
         else:
             plugin = "Houdini"
             if split_render_job:
@@ -180,21 +115,6 @@ class PreviewHoudiniSubmitDeadline(
 
         job_info.UserName = context.data.get(
             "deadlineUser", getpass.getuser())
-
-        '''
-        if split_render_job and is_export_job:
-            job_info.Priority = attribute_values.get(
-                "export_priority", self.export_priority
-            )
-        else:
-            job_info.Priority = attribute_values.get(
-                "priority", self.priority
-            )
-        '''
-        if split_render_job and is_export_job:
-            job_info.Priority = instance.data["export_priority"]
-        else:
-            job_info.Priority = instance.data["preview_priority"]
 
         if is_in_tests():
             job_info.BatchName += datetime.now().strftime("%d%m%Y%H%M%S")
@@ -236,7 +156,7 @@ class PreviewHoudiniSubmitDeadline(
 
         job_info.Pool = instance.data.get("primaryPool")
         job_info.SecondaryPool = instance.data.get("secondaryPool")
-        job_info.Group = self.group
+
         '''
         if split_render_job and is_export_job:
             job_info.Priority = attribute_values.get(
@@ -257,9 +177,18 @@ class PreviewHoudiniSubmitDeadline(
         if split_render_job and is_export_job:
             job_info.Priority = instance.data["export_priority"]
             job_info.ChunkSize = instance.data["export_chunk_size"]
+            job_info.Group = instance.data["export_group"]
         else:
             job_info.Priority = instance.data["preview_priority"]
             job_info.ChunkSize = instance.data["chunk_size"]
+            job_info.Group = instance.data["group"]
+
+        # Apply render globals, like e.g. data from collect machine list
+        render_globals = instance.data.get("renderGlobals", {})
+        if render_globals:
+            self.log.debug("Applying 'renderGlobals' to job info: %s",
+                           render_globals)
+            job_info.update(render_globals)
 
         job_info.Comment = context.data.get("comment")
 
@@ -268,12 +197,15 @@ class PreviewHoudiniSubmitDeadline(
             "FTRACK_API_USER",
             "FTRACK_SERVER",
             "OPENPYPE_SG_USER",
+            "AYON_BUNDLE_NAME",
+            "AYON_DEFAULT_SETTINGS_VARIANT",
             "AYON_PROJECT_NAME",
             "AYON_FOLDER_PATH",
             "AYON_TASK_NAME",
             "AYON_WORKDIR",
             "AYON_APP_NAME",
             "AYON_LOG_NO_COLORS",
+            "AYON_IN_TESTS"
         ]
 
         environment = {
