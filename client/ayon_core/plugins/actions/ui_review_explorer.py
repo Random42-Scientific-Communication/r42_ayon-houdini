@@ -39,7 +39,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         self.folder_name = self.folder_id = self.folder_path = None
         self.x_dir = self.x_file = None
         self.review_instance_dict = {}
-        self.exr_instance_dict = {}
 
         self._populate_data()
         self.debug()
@@ -47,7 +46,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         # -- Connect
         self.connect_ui()
         self.populate_review_instances()
-        self.populate_exr_instances()
 
     # ------------------------
     # -- UI FUNCTIONS --
@@ -58,7 +56,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         self.buttonMoveToX.clicked.connect(self.copy_selected_to_x)
         self.buttonLatestToX.clicked.connect(self.copy_latest_to_x)
         self.checkDebug.stateChanged.connect(self.debug_visibility)
-        self.buttonEXRs.clicked.connect(self.open_exr_dir)
 
     def debug_visibility(self):
         self.debugBox.setVisible(self.checkDebug.isChecked())
@@ -100,10 +97,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         if folder_data["folderType"] != "Shot":
             return 0
 
-        # ---- Check if it is ProRes exr ----
-        if rep_data["context"]["representation"] == "ProRes_exr":
-            return 2
-
         return 1
 
     def populate_prores_data(self):
@@ -134,6 +127,10 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
                     if valid == 0:
                         continue
 
+                    file_path = rep['attrib']['path']
+                    modified_time = os.path.getmtime(file_path)
+                    modified_time_format = datetime.fromtimestamp(modified_time).isoformat()
+
                     # ---- Extract out the essential data ----
                     data = {
                         "subset_name": rep["context"]["subset"],
@@ -142,13 +139,10 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
                         "project_code": rep["context"]["project"]["code"],
                         "shot_name": rep["context"]["folder"]["name"],
                         "folder_path": self.folder_path,
-                        "rep_created": rep["createdAt"]
+                        "rep_created": modified_time_format
                     }
                     data_instance = DataInstance(data)
-                    if valid == 1:
-                        self.review_instance_dict[data['subset_name']] = data_instance
-                    else:
-                        self.exr_instance_dict[data['subset_name']] = data_instance
+                    self.review_instance_dict[data['subset_name']] = data_instance
 
             except TypeError:
                 continue
@@ -178,11 +172,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
         for review_name in list(self.review_instance_dict.keys()):
             self.comboProducts.addItem(review_name)
 
-    def populate_exr_instances(self):
-        self.comboEXRs.clear()
-        for exr_name in list(self.exr_instance_dict.keys()):
-            self.comboEXRs.addItem(exr_name)
-
     def compare_prores_data(self):
         latest_instance = None
         for key in self.review_instance_dict:
@@ -203,6 +192,7 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
                 latest_instance = instance
             else:
                 continue
+
         return latest_instance
 
     def open_x_drive_path(self):
@@ -214,14 +204,6 @@ class ReviewExplorerUI(ui_review_explorer_graphics.ReviewExplorerUIGraphics):
     def open_review_dir(self):
         product_name = self.comboProducts.currentText()
         path = self.review_instance_dict[product_name].directory
-        if not path:
-            return
-
-        self.open_in_explorer(path)
-
-    def open_exr_dir(self):
-        exr_name = self.comboEXRs.currentText()
-        path = self.exr_instance_dict[exr_name].directory
         if not path:
             return
 
