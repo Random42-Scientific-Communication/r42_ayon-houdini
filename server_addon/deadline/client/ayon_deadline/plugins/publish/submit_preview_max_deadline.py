@@ -43,18 +43,22 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
     targets = ["local"]
     order = pyblish.api.IntegratorOrder + 0.24
     settings_category = "deadline"
+    jobInfo = {}
+    pluginInfo = {}
 
+    # This part is being done in collect_R42_max_publish_attributes
+    '''
     use_published = True
     priority = 50
     chunk_size = 1
-    jobInfo = {}
-    pluginInfo = {}
     group = None
     use_preview_frames = False
-
     preview_frame_skip = 2
     initialStatus = "active"
+    '''
 
+    # This part is being done in collect_R42_max_publish_attributes
+    '''
     @classmethod
     def apply_settings(cls, project_settings):
         settings = project_settings["deadline"]["publish"]["MaxSubmitDeadline"]  # noqa
@@ -69,6 +73,7 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
         cls.preview_frame_skip = settings.get("preview_frame_skip", cls.preview_frame_skip)
         cls.use_preview_frames = settings.get("use_preview_frames", cls.use_preview_frames)
         cls.initialStatus = settings.get("initialStatus", cls.initialStatus)
+    '''
 
     # TODO: multiple camera instance, separate job infos
     def get_job_info(self):
@@ -433,10 +438,12 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
             for file in exp:
                 yield file
 
+    # This part is being done in collect_R42_max_publish_attributes
+    '''
     @classmethod
     def get_attribute_defs(cls):
         defs = super(PreviewMaxSubmitDeadline, cls).get_attribute_defs()
-        '''
+        
         defs.extend([
             BoolDef("use_published",
                     default=cls.use_published,
@@ -476,5 +483,6 @@ class PreviewMaxSubmitDeadline(abstract_submit_deadline.AbstractSubmitDeadline,
                     items=["Active", "Suspended"],
                     default=cls.initialStatus),
         ])
-        '''
+        
         return defs
+    '''
