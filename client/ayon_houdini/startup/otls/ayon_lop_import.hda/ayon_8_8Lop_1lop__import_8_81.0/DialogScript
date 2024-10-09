@@ -48,35 +48,18 @@
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "product_type"
-            label   "Product Type"
-            type    string
-            default { "usd" }
-            menu {
-                ""              "*"
-                "animation"     "animation"
-                "camera"        "camera"
-                "model"         "model"
-                "pointcache"    "pointcache"
-                "usd"           "usd"
-            }
+            name    "folder_name"
+            label   "Folder Name"
+            type    label
+            default { "`strsplit(chs(\"folder_path\"), \"/\", -1)`" }
         }
         parm {
             name    "product_name"
             label   "Product"
             type    string
             default { "usdAsset" }
-            menureplace {
-                [ "products = hou.phm().get_available_products(kwargs['node'])" ]
-                [ "" ]
-                [ "result = []" ]
-                [ "for product in products:" ]
-                [ "    result.append(product)" ]
-                [ "    result.append(product)" ]
-                [ "    " ]
-                [ "return result" ]
-                language python
-            }
+            parmtag { "script_action" "from ayon_houdini.api.hda_utils import select_product_name;select_product_name(kwargs['node'])" }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
             parmtag { "script_callback" "hou.phm().set_to_latest_version(kwargs['node'])\nhou.phm().on_representation_parms_changed(kwargs['node'])" }
             parmtag { "script_callback_language" "python" }
         }
@@ -149,9 +132,19 @@
             parmtag { "script_callback_language" "python" }
         }
         parm {
+            name    "use_ayon_entity_uri"
+            label   "Use AYON Entity URI"
+            help    "When enabled, loads the filepath using the AYON Entity URI instead of the resolved filepath."
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback" "hou.phm().on_representation_parms_changed(kwargs['node'], force=True)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "primpath1"
             label   "Primitive Root"
             type    string
+            joinnext
             default { "`chs(\"folder_path\")`/$OS" }
             menureplace {
                 [ "opmenu -l -a reference_character primpath1" ]
@@ -161,6 +154,19 @@
             parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane.\nCtrl-click to select using the primitive picker dialog.\nAlt-click to toggle movement of the display flag." }
             parmtag { "script_action_icon" "BUTTONS_reselect" }
             parmtag { "sidefx::usdpathtype" "prim" }
+        }
+        parm {
+            name    "primpath_presets"
+            label   "Presets"
+            type    button
+            nolabel
+            default { "0" }
+            menu {
+                "`chs(\"folder_name\")`"        "Folder Name\n    (Use for \"Asset Build\" workflow)"
+                "`chs(\"folder_path\")`/$OS"    "Folder Path with Node Name\n    (Use for \"Shot\" or \"Scene Assembly\" workflow)"
+            }
+            parmtag { "script_callback" "parm = kwargs[\"node\"].parm(\"primpath1\"); parm.revertToDefaults(); parm.set(kwargs[\"script_value0\"])" }
+            parmtag { "script_callback_language" "python" }
         }
         groupcollapsible {
             name    "extra_options"
